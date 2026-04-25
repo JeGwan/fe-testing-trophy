@@ -3,6 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { Board } from "./Board";
 import { addCard, createBoard } from "@/lib/kanban/board";
+import {
+  BOARD_STORAGE_KEY,
+  deserializeBoard,
+  saveBoard,
+} from "@/lib/kanban/storage";
 
 describe("<Board /> static rendering", () => {
   it("renders three column headings: Todo / Doing / Done", () => {
@@ -108,5 +113,53 @@ describe("<Board /> add card interaction", () => {
     expect(
       within(todo).getByRole("button", { name: /add card/i }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("<Board /> persistence", () => {
+  it("loads stored board on mount, overriding initialBoard", async () => {
+    const stored = addCard(createBoard(), "doing", {
+      id: "stored-1",
+      title: "Restored task",
+    });
+    saveBoard(localStorage, stored);
+
+    render(<Board initialBoard={createBoard()} />);
+
+    const doing = await screen.findByRole("region", { name: "Doing column" });
+    expect(
+      await within(doing).findByText("Restored task"),
+    ).toBeInTheDocument();
+  });
+
+  it("persists added cards to localStorage", async () => {
+    const user = userEvent.setup();
+    render(<Board initialBoard={createBoard()} />);
+
+    const todo = screen.getByRole("region", { name: "Todo column" });
+    await user.click(within(todo).getByRole("button", { name: /add card/i }));
+    await user.type(
+      within(todo).getByRole("textbox", { name: /new card title/i }),
+      "Persist me",
+    );
+    await user.click(within(todo).getByRole("button", { name: "Add" }));
+
+    const persisted = deserializeBoard(localStorage.getItem(BOARD_STORAGE_KEY));
+    expect(persisted).not.toBeNull();
+    const todoColumn = persisted!.columns.find((c) => c.id === "todo");
+    expect(todoColumn?.cards.map((c) => c.title)).toContain("Persist me");
+  });
+
+  it("falls back to initialBoard when storage holds corrupted data", async () => {
+    localStorage.setItem(BOARD_STORAGE_KEY, "{not json");
+    const seed = addCard(createBoard(), "todo", {
+      id: "seed-1",
+      title: "Seeded",
+    });
+
+    render(<Board initialBoard={seed} />);
+
+    const todo = screen.getByRole("region", { name: "Todo column" });
+    expect(within(todo).getByText("Seeded")).toBeInTheDocument();
   });
 });

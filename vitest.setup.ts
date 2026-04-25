@@ -7,4 +7,7 @@ import { afterEach } from "vitest";
 // between tests.
 afterEach(() => {
   cleanup();
+  // jsdom's localStorage persists across tests in the same file —
+  // clear it so persistence-related tests stay isolated.
+  if (typeof localStorage !== "undefined") localStorage.clear();
 });

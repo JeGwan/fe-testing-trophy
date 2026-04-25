@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { addCard } from "@/lib/kanban/board";
+import { loadBoard, saveBoard } from "@/lib/kanban/storage";
 import type {
   Board as BoardModel,
   ColumnId,
@@ -9,6 +10,27 @@ import type {
 
 export function Board({ initialBoard }: { initialBoard: BoardModel }) {
   const [board, setBoard] = useState(initialBoard);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load on mount (client-only). First render must use initialBoard so the
+  // hydrated DOM matches the SSR HTML; this effect then swaps in stored data.
+  // A lazy useState initializer would read localStorage during render and
+  // diverge from SSR — useEffect is intentional here.
+  /* eslint-disable react-hooks/set-state-in-effect --
+     Hydrating React state from an external store on mount. */
+  useEffect(() => {
+    const loaded = loadBoard(localStorage);
+    if (loaded) setBoard(loaded);
+    setHydrated(true);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Persist after each change. Skip the very first render so we don't
+  // overwrite a stored board with the seed before load runs.
+  useEffect(() => {
+    if (!hydrated) return;
+    saveBoard(localStorage, board);
+  }, [board, hydrated]);
 
   const handleAddCard = (columnId: ColumnId, title: string) => {
     const trimmed = title.trim();
