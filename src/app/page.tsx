@@ -13,7 +13,7 @@ export default function Home() {
       <h1 className="px-6 pt-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
         Kanban
       </h1>
-      <Board board={board} />
+      <Board initialBoard={board} />
     </main>
   );
 }
