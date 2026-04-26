@@ -1,8 +1,8 @@
-# kanban-ci-study
+# fe-testing-trophy
 
 FE 테스트 레이어 구성과 실제 예시 레퍼런스. Testing Trophy 모델을 따라 4개 레이어를 차례로 정리하면서, 각 레이어의 **환경 / 도구 / 잡는 것 / 못 잡는 것**을 단순한 칸반 보드 앱(Next.js 16 + React 19 + TypeScript) 위에서 실제 코드와 함께 보여준다.
 
-- Repo: https://github.com/JeGwan/kanban-ci-study (private)
+- Repo: https://github.com/JeGwan/fe-testing-trophy (private)
 - Stack: Next.js 16 (App Router, Turbopack) / React 19 / TypeScript / Tailwind v4
 
 ---
