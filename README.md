@@ -52,6 +52,8 @@ npm run build && npm run e2e   # E2E까지 포함
 
 따라서 *아래는 두텁게, 위는 핵심만 얇게* 가 비용 대비 신뢰도가 가장 좋다는 게 트로피의 원칙. Mike Cohn의 고전 *Test Pyramid*에서 파생된, Kent C. Dodds (RTL 저자)의 프론트엔드 변형.
 
+> 🎯 **시각화**: [트로피 6층 거름망](https://jegwan.github.io/fe-testing-trophy/) — 각 레이어가 어떤 결함을 잡는지 애니메이션으로. 로컬에선 `open docs/index.html`.
+
 > **환경 표기를 같이 둔 이유** — "Component / Integration", "Unit" 같은 이름은 *테스트가 어떤 범위를 다루는가* 를 강조하지만, *어떤 환경에서 도는가* 는 안 드러낸다. 그런데 각 레이어의 **본질적 한계는 보통 환경에서 온다** — jsdom 층이 페이지 reload 시나리오를 못 잡는 건 "범위" 의 문제가 아니라 *jsdom이 진짜 브라우저가 아니라는 환경* 의 문제다. 두 축을 같이 표기하면 각 레이어가 무엇을 못 하는지가 다이어그램만 봐도 자명해진다.
 
 ---

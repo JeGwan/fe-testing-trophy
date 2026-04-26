@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>트로피 6층 거름망 — fe-testing-trophy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="FE Testing Trophy를 시각화한 6층 거름망. 각 결함이 어느 레이어에서 잡히는지 애니메이션으로 보여줍니다."
+    />
+    <link rel="stylesheet" href="sieve.css" />
+  </head>
+  <body>
+    <header>
+      <h1>
+        트로피 6층 거름망
+        <span class="badge">fe-testing-trophy</span>
+      </h1>
+      <p class="subtitle">
+        각 레이어는 자기 모양의 결함만 잡습니다 — 단조 필터가 아니라 역할 분담입니다.
+      </p>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="시각화 모드">
+      <button
+        class="tab active"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        data-tab="anim"
+      >
+        🎬 자동 애니메이션
+      </button>
+      <button
+        class="tab"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        data-tab="step"
+      >
+        📊 단계별 검증
+      </button>
+    </nav>
+
+    <main class="grid">
+      <section
+        class="stage"
+        aria-label="자동 애니메이션 영역"
+        data-view="anim"
+      >
+        <div class="controls">
+          <button id="replay" type="button">↻ 재시작</button>
+          <span class="hint">레이어를 호버하면 잡는 것 / 못 잡는 것이 표시됩니다.</span>
+        </div>
+        <!-- SVG injected by sieve.js -->
+      </section>
+
+      <section
+        class="step-stage"
+        aria-label="단계별 검증 매트릭스"
+        data-view="step"
+        hidden
+      >
+        <div class="step-controls">
+          <button id="step-next" type="button">1.1 Lint 적용 →</button>
+          <button id="step-reset" type="button" disabled>↺ 처음으로</button>
+          <span class="step-progress">
+            단계 <strong id="step-current">0</strong> / 7
+          </span>
+          <span id="step-stage-label" class="step-stage-label">
+            모든 결함이 아직 검증되지 않은 상태입니다 (`?`).
+          </span>
+        </div>
+        <div class="step-matrix-wrap">
+          <table class="step-matrix" id="step-matrix">
+            <thead>
+              <tr>
+                <th class="col-label">결함</th>
+                <th data-layer="1.1">1.1 Lint</th>
+                <th data-layer="1.2">1.2 Typecheck</th>
+                <th data-layer="1.3">1.3 Build</th>
+                <th data-layer="2">2 Unit</th>
+                <th data-layer="3">3 Component</th>
+                <th data-layer="4">4 E2E</th>
+                <th data-layer="escape">→ 미커버</th>
+              </tr>
+            </thead>
+            <tbody id="step-matrix-body"><!-- rows injected by sieve.js --></tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="panel" aria-live="polite">
+        <span id="panel-tag" class="panel-tag" style="display: none">TAG</span>
+        <h2 id="panel-title">호버해서 레이어를 살펴보세요</h2>
+        <p id="panel-tool" class="panel-tool"></p>
+        <div id="panel-default">
+          <p style="color: var(--text-dim); font-size: 13px; margin: 0">
+            트로피의 6개 거름망 위로 결함이 떨어집니다. 자기 모양에 맞는 거름망을 만나면
+            거기서 잡히고, 그렇지 않으면 다음 레이어로 통과합니다 — 통과한 공은 흐려져서
+            "검사됨" 으로 표시됩니다.
+          </p>
+          <p style="color: var(--text-dim); font-size: 13px; margin-top: 12px">
+            하이라이트:
+          </p>
+          <ul style="color: var(--text-dim); font-size: 13px">
+            <li>
+              <strong style="color: #f97316">1.3 Build</strong> 만 잡을 수 있는 결함이
+              따로 있다 — RSC 경계, edge runtime, metadata 시그니처 등.
+            </li>
+            <li>
+              <strong style="color: #6b7280">↓ 아래로 빠지는 공</strong> — 트로피로도
+              못 잡는 결함 (다른 브라우저, 시각 회귀, 미작성 테스트).
+            </li>
+          </ul>
+        </div>
+        <h3 id="panel-catches-h" style="display: none">잡는 것</h3>
+        <ul id="panel-catches"></ul>
+        <h3>못 잡는 것</h3>
+        <ul id="panel-misses"></ul>
+        <p id="panel-hint" class="panel-hint" style="display: none"></p>
+      </aside>
+    </main>
+
+    <footer>
+      <span>
+        📖
+        <a
+          href="https://github.com/JeGwan/fe-testing-trophy#readme"
+          target="_blank"
+          rel="noopener"
+          >fe-testing-trophy README</a
+        >
+        — 모든 카피의 단일 출처
+      </span>
+      <span>
+        <a
+          href="https://kentcdodds.com/blog/the-testing-trophy-and-testing-classifications"
+          target="_blank"
+          rel="noopener"
+          >Testing Trophy (Kent C. Dodds)</a
+        >
+      </span>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="sieve.js"></script>
+  </body>
+</html>
