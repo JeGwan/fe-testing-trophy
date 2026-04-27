@@ -45,3 +45,6 @@ next-env.d.ts
 /playwright-report
 /blob-report
 /playwright/.cache
+
+# /testing-trophy doctor logs (per-repo run history; not source)
+/.claude/testing-trophy/logs/

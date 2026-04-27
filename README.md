@@ -18,6 +18,8 @@ npm run build && npm run e2e   # E2E까지 포함
 
 `npm run ci`는 GitHub Actions가 도는 명령과 같다 — "내 로컬에선 되는데"가 발생할 여지를 줄이는 게 목적. E2E는 prod 빌드를 띄워야 해서 의도적으로 분리.
 
+> 🛠 이 레포의 패턴을 *다른 레포에 자동 적용*하려면 → 본문 끝 [`/testing-trophy` 스킬](#testing-trophy-스킬-claude-code) 섹션. doctor로 진단, make로 4 레이어 테스트 병렬 생성.
+
 ---
 
 ## 어떻게 읽을까
@@ -340,3 +342,69 @@ git log --oneline
 ```
 
 각 커밋 메시지는 그 단계에서 *왜 그 도구가 필요해졌는지* 를 설명한다. 본문이 *"무엇"* 을 정리한 거라면 commit history는 *"왜"* 를 보여준다.
+
+---
+
+## /testing-trophy 스킬 (Claude Code)
+
+이 레포의 패턴을 *다른 임의의 레포에 자동 적용*하는 [Claude Code](https://claude.com/claude-code) 스킬을 함께 제공한다. 본문은 *"무엇/왜"* 를 가르치고, 스킬은 *"어떻게 적용할지"* 를 자동화한다.
+
+위치: `.claude/skills/testing-trophy/`
+
+```
+.claude/skills/testing-trophy/
+├── SKILL.md          # 라우터: doctor | make 분기
+├── detect.md         # cwd → tool matrix 감지
+├── doctor.md         # 4 레이어 부울 체크리스트 진단
+├── make.md           # 3-way 병렬 dry-run → 승인 → write
+├── defaults.md       # 권장 도구 매트릭스 (감지 실패 시 폴백)
+└── layers/
+    ├── unit.md       # Node 환경 서브에이전트 정의
+    ├── component.md  # jsdom 환경 서브에이전트 정의
+    └── e2e.md        # 실 브라우저 서브에이전트 정의
+```
+
+### 두 명령
+
+| 명령 | 동작 |
+|---|---|
+| `/testing-trophy doctor` | cwd 레포의 4 레이어 커버리지 진단. ✅/⚠️/❌ 부울 체크리스트 + 보강 액션. **읽기 전용** (로그 파일 1개 외 코드 0건 수정) |
+| `/testing-trophy make` | 전체 src 대상 테스트 dry-run plan |
+| `/testing-trophy make <path>` | 특정 파일/디렉토리 대상 |
+| `/testing-trophy make <spec.md>` | 마크다운 스펙 문서 기반 |
+| `/testing-trophy make <confluence-url>` | 사내 위키 페이지 기반 |
+
+### 작동 방식
+
+**구현-agnostic** — `detect.md`가 cwd의 도구를 매트릭스로 산출. ESLint/Biome, Vitest/Jest, RTL/Vue-TL/Svelte-TL, Playwright/Cypress 어느 조합이든 작동. `layers/*.md`는 *환경/책임/금지*만 정의하고 도구 컨벤션은 매트릭스에서 추출. 도구가 미감지면 `defaults.md`의 권장(이 레포의 셋업 = Vitest projects + jsdom + RTL + Playwright Chromium)을 폴백.
+
+**3-way 병렬 fan-out** — make는 Unit/Component/E2E 3개 서브에이전트를 한 번에 호출. 각 에이전트는 *환경 위반 패턴*(예: Component가 `location.reload`, E2E가 마이크로 단언)을 거부하고 다른 레이어로 위임 표기. Static은 *코드 생성*이 아니라 *config 점검*이라 doctor 영역.
+
+**dry-run → 승인 → write** — 서브에이전트는 plan 표(파일 경로 + 사유 + preview)만 산출, 메인이 사용자 승인 후 직접 Write. 테스트 코드는 *false-green*(잘못된 단언이 통과) 위험이 다른 코드보다 비싸기 때문.
+
+### 안전장치 (의도적으로 *안* 함)
+
+- **자동 의존성 설치 금지** (`npm i -D` 안 함) — 변경안만, install은 사람이.
+- **자동 commit/push 금지** — Static 보강도 doctor 리포트의 *제안* 으로만.
+- **기존 테스트 덮어쓰기 금지** — 동일 경로 충돌 시 `.new.{ext}` suffix.
+- **자동 테스트 실행 금지** — write 후 사용자가 직접 검증.
+- **커버리지 % 강제 금지** — 트로피 철학(*환경별로 무엇을 잡는가*) 위배.
+- **doctor가 코드 변경 금지** — 로그 파일 1개만 (`.claude/testing-trophy/logs/<timestamp>.md`, gitignored).
+
+### 다른 레포로 가져가기
+
+```bash
+# 1) 이 레포에서 .claude/skills/testing-trophy/ 만 가져간다
+cp -r path/to/fe-testing-trophy/.claude/skills/testing-trophy \
+      your-repo/.claude/skills/
+
+# 2) Claude Code에서 자동 인식 — your-repo 안에서:
+/testing-trophy doctor              # 진단
+/testing-trophy make src/foo/bar.ts # 특정 파일 테스트 plan
+```
+
+스킬은 cwd의 도구 조합을 자동 감지하므로 다른 스택(Vue, Svelte, Jest, Cypress 등)에서도 시도 가능. 1차 권장은 이 레포와 동일한 Next/Vitest/Playwright 조합.
+
+### 라이선스 / 기여
+
+스킬 파일들은 MIT 같은 자유 재사용 가정 — 가져다 쓰고, 자기 레포 컨벤션에 맞게 고쳐도 OK. 개선안은 PR 환영.
